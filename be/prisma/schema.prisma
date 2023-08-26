@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+model Users {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  password   String
+  name       String
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Brands {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique()
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  models     Models[]
+
+  @@map("brands")
+}
+
+model Models {
+  id           Int            @id @default(autoincrement())
+  brand_id     Int
+  name         String         @unique()
+  is_active    Boolean        @default(true)
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  brands       Brands         @relation(fields: [brand_id], references: [id])
+  transactions Transactions[]
+
+  @@map("models")
+}
+
+model Transactions {
+  id                 Int               @id @default(autoincrement())
+  model_id           Int
+  transaction_number String            @unique()
+  status             TransactionStatus @default(New)
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+  models             Models?           @relation(fields: [model_id], references: [id])
+
+  @@map("transactions")
+}
+
+enum TransactionStatus {
+  New
+  InProcess
+  Completed
+}
